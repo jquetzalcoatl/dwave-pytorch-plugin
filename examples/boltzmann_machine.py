@@ -32,7 +32,7 @@ def run(use_qpu: bool, num_reads: int, batch_size: int, n_iterations: int, fully
         fully_visible (bool): Flag indicating whether the model should be fully visible.
     """
     if use_qpu:
-        sampler = DWaveSampler(solver="Advantage2_system1.3")
+        sampler = DWaveSampler(solver="Advantage2_system1.12")
         zephyr_grid_size = sampler.properties['topology']['shape'][0]
         G = sampler.to_networkx_graph()
         sample_kwargs = dict(
@@ -114,6 +114,9 @@ def run(use_qpu: bool, num_reads: int, batch_size: int, n_iterations: int, fully
 
         # Update model weights with a step of stochastic gradient descent
         opt_grbm.step()
+        
+        if use_qpu:
+            grbm.clamp_parameters(linear_range=h_range, quadratic_range=j_range)
 
         # Compute the average (absolute) gradient to monitor convergence
         avg_grad = (grbm._linear.grad.abs().mean() + grbm._quadratic.grad.abs().mean())/2
@@ -125,4 +128,4 @@ def run(use_qpu: bool, num_reads: int, batch_size: int, n_iterations: int, fully
 
 if __name__ == "__main__":
     # Run example of fitting a fully-visible Boltzmann machine with a classical sampler
-    run(use_qpu=False, num_reads=100, batch_size=100, n_iterations=3, fully_visible=True)
+    run(use_qpu=True, num_reads=100, batch_size=100, n_iterations=3, fully_visible=True)

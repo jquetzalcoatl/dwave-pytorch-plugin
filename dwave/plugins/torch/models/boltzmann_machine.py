@@ -676,3 +676,19 @@ class GraphRestrictedBoltzmannMachine(torch.nn.Module):
         bqm = BinaryQuadraticModel.from_ising(*self.to_ising(1))
         beta = 1 / mple(bqm, (spins.detach().cpu().numpy(), self._nodes))[0]
         return beta
+    
+    def clamp_parameters(self, 
+        linear_range: Optional[tuple[float, float]],
+        quadratic_range: Optional[tuple[float, float]]
+    ) -> None:
+        """
+        Clamp the linear and quadratic parameters of the model to specified ranges.
+        Args:
+            linear_range (tuple[float, float], Optional): The minimum and maximum values to clip linear
+                biases with.
+            quadratic_range (tuple[float, float], Optional): The minimum and maximum values to clip
+                quadratic biases with.
+        """
+        with torch.no_grad():
+            self._linear.data.clamp_(linear_range[0], linear_range[1])
+            self._quadratic.data.clamp_(quadratic_range[0], quadratic_range[1])
